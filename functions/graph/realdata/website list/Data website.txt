@@ -1,0 +1,4 @@
+http://www-personal.umich.edu/~mejn/netdata/
+https://snap.stanford.edu/data/
+http://www.dynamic-connectome.org/?page_id=25
+http://pajek.imfm.si/doku.php?id=data:urls:index
