@@ -18,7 +18,7 @@ if (exist(javapath, 'dir'))
     javaaddpath(javapath)
 else
     % Add the library
-    javaaddpath(fullfile(rootpath, 'lib', 'org.anon.cocoa_1.0.jar'));
+    javaaddpath(fullfile(rootpath, 'lib', 'org.anon.cocoa_1.1.jar'));
 end
 
 end
