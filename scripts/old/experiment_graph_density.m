@@ -2,28 +2,33 @@
 superclear
 
 settings.nagents = 100;
-settings.density = [.1 .2 .4 .5 .6 .7 .8 .9];
-settings.numExps = 10;
+settings.density = [.05 .1 .2 .4 .8];
+settings.numExps = 1;
 
 solvers.DSA = 'org.anon.cocoa.solvers.DSASolver';
 solvers.CoCoA = 'org.anon.cocoa.solvers.UniqueFirstCooperativeSolver';
-solvers.Greedy = 'org.anon.cocoa.solvers.GreedyLocalSolver';
+% solvers.Greedy = 'org.anon.cocoa.solvers.GreedyLocalSolver';
 solvers.MGM2 = 'org.anon.cocoa.solvers.MGM2Solver';
 % solvers.AFB = 'org.anon.cocoa.solvers.FBSolver';
 % solvers.CFL = 'org.anon.cocoa.solvers.TickCFLSolver';
+solvers.ACLS = 'org.anon.cocoa.solvers.ACLSSolver';
+solvers.MCSMGM = 'org.anon.cocoa.solvers.MCSMGMSolver';
 
-options.ncolors = uint16(4);
-options.costFunction = 'org.anon.cocoa.costfunctions.RandomCostFunction';
+options.ncolors = uint16(10);
+% options.costFunction = 'org.anon.cocoa.costfunctions.RandomCostFunction';
+options.costFunction = 'org.anon.cocoa.costfunctions.SemiRandomCostFunction';
 options.graphType = @randomGraph;
 
-options.nIterations = uint16(25);
+options.nStableIterations = uint16(0);
+options.nMaxIterations = uint16(100);
 options.maxTime = 120;
-options.waitTime = 15;
+options.waitTime = 1;
 options.keepCostGraph = false;
 
 solvertypes = fieldnames(solvers);
 
-expname = sprintf('exp_density_%s_%d_%s_i%d', func2str(options.graphType), options.ncolors, datestr(now,30), settings.numExps);
+C = strsplit(options.costFunction, '.');
+expname = sprintf('exp_density_%s_%s_i%d_d%d_n%d_t%s', C{end}, func2str(options.graphType), settings.numExps, options.ncolors, settings.nagents, datestr(now,30));
 
 for n = 1:numel(settings.density)
     options.graph.density = settings.density(n);
@@ -39,7 +44,7 @@ for n = 1:numel(settings.density)
             options.solverType = solvers.(solvername);
   
 %             try
-                fprintf('Performing experiment with %s(%d)\n', solvername, options.graph.nAgents);
+                fprintf('Performing experiment with %s (%d/%d)\n', solvername, e, settings.numExps);
                 exp = doExperiment(edges, options);
 %             catch err
 %                 warning('Timeout or error occured:');
