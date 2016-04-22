@@ -12,29 +12,25 @@
 %
 
 %% Function Definition
-function [varargout] = createResultGraph(results, settings, y_field, plotOptions)
+function [varargout] = createResultGraph(results, x_field, y_field, plotOptions)
 
 %% Get what should be on the X axis
-if isfield(settings, 'density') && numel(settings.density) > 1
-    x = settings.density;
-    default_x_label = 'Graph density';
-elseif isfield(settings, 'nMaxIterations')
-    x = 1:settings.nMaxIterations;
-    default_x_label = 'Iterations';
+if ischar(x_field)
+    default_x_label = x_field;
+    default_x_label(1) = upper(default_x_label(1));
 else
-    x = settings.nagents;
-    default_x_label = 'Graph size';
+    default_x_label = '';
 end
-
 
 %% Get the different algorithms from the results
 algos = sort(fieldnames(results));
-myalgo = getSubOption('', 'char', plotOptions, 'plot', 'emphasize');
+myalgo = getSubOption({}, 'cell', plotOptions, 'plot', 'emphasize');
 
 % Set default style
 default_styles = repmat({'-', '--', '-.', ':'},1,ceil(numel(algos)/4));
 if ~isempty(myalgo)
-    algos = [myalgo; algos(~strcmp(algos, myalgo))];
+    k = cellfun(@(x) strcmp(x, algos), myalgo, 'UniformOutput', false);
+    algos = [myalgo(:); algos(~any([k{:}], 2))];
 %     default_styles = [{'o-'} default_styles];
 end
 
@@ -50,6 +46,7 @@ plotRange = getSubOption([], 'double', plotOptions, 'plot', 'range');
 styles = getSubOption(default_styles, 'cell', plotOptions, 'plot', 'styles');
 colors = getSubOption(cubehelix(numel(algos) + 1, .5, -1.5, 3, 1), 'double', plotOptions, 'plot', 'colors');
 yfun = getSubOption(@(x) mean(x,2), 'function_handle', plotOptions, 'plot', 'y_fun');
+xfun = getSubOption(@(x) mean(x,2), 'function_handle', plotOptions, 'plot', 'x_fun');
 linewidth = getSubOption(2, 'double', plotOptions, 'plot', 'linewidth');
 do_errorbar = getSubOption(true, 'logical', plotOptions, 'plot', 'errorbar');
 
@@ -75,6 +72,8 @@ minortick = getSubOption('on', 'char', plotOptions, 'axes', 'minortick');
 
 yscale = getSubOption('linear', 'char', plotOptions, 'axes', 'yscale');
 yminval = getSubOption([], 'double', plotOptions, 'axes', 'ymin');
+xscale = getSubOption('linear', 'char', plotOptions, 'axes', 'xscale');
+xmax = getSubOption([], 'double', plotOptions, 'axes', 'xmax');
 
 labelfont = getSubOption('times', 'char', plotOptions, 'label', 'font');
 labelsize = getSubOption(16, 'double', plotOptions, 'label', 'fontsize');
@@ -103,24 +102,33 @@ hold(ax, 'on');
 
 for i = 1:numel(algos)
     y = yfun(results.(algos{i}).(y_field));
-       
-    if size(y,1) == 1
-        if size(y,2) == numel(x)
-            error('Expected a data in columns, not rows');
-        else
-            y = repmat(y,numel(x),1);
-        end
-    end
+    x = xfun(results.(algos{i}).(x_field));
     
-    if ~isempty(plotRange)
-        x = x(plotRange);
-        y = y(plotRange);
+    if size(y,1) == 1
+    	style = {'LineStyle', 'none', 'Marker', 'o'};
+        x = max(x);
+    else
+        style = {'Marker', 'none'};
+        
+%         if size(x,1) == 1
+%             x = plotRange;
+%         end
+%         
+%         if ~isempty(plotRange)
+%             x = x(plotRange);
+%             y = y(plotRange);
+%         end
     end
+
+    % Sometimes the plotRange is empty if Y adjusted to max length of Y
+%     if isempty(x)
+%         x = 1:numel(y);
+%     end
     
     lw = linewidth;
     if strcmp(algos{i}, myalgo); lw = 1.5 * lw; end
     plot(ax, x, y, styles{mod(i-1, numel(styles))+1}, ...
-        'linewidth', lw, 'color', colors(mod(i-1, size(colors,1))+1,:));
+        'linewidth', lw, 'color', colors(mod(i-1, size(colors,1))+1,:), style{:});
 end
 hl = legend(ax, algos{:}, 'Location', 'NorthWest');
 
@@ -153,13 +161,17 @@ else
 end
 
 set(hl, 'fontsize', legendsize, 'fontname', legendfont, 'linewidth', ...
-    legendlinewidth, 'Box', legendbox, 'Location', legendloc);
+    legendlinewidth, 'Box', legendbox, 'Location', legendloc, 'Interpreter', 'none');
 set(ax, 'fontsize', axessize, 'fontname', axesfont, 'linewidth', axeslinewidth, ...
     'YMinorGrid', minorgrid, 'YMinorTick', minortick, ...
     'XMinorGrid', minorgrid, 'XMinorTick', minortick, ...
-    'Box', axesbox, 'YGrid', axesgrid, 'XGrid', axesgrid, ...
-    'XLim', [min(x) max(x)], 'YScale', yscale,  ...
+    'Box', axesbox, 'YGrid', axesgrid, 'XGrid', axesgrid, ... 
+    'YScale', yscale,  'XScale', xscale, ... % 'XLim', [min(x) max(x)], ...
     'YLim', [yminval ymax]);%, 'YTick', ytick); %max(get(ax, 'YLim'))]);
+
+if ~isempty(xmax)
+    xlim(ax, [0 xmax]);
+end
 
 yax = get(ax, 'YAxis');
 set(yax, 'Exponent', floor(log10(ymax)));
@@ -167,13 +179,15 @@ set(yax, 'Exponent', floor(log10(ymax)));
 % ht = title('Solution cost', 'fontsize', titlesize, 'fontname', font, 'fontweight', titleweight);
 xlabel(ax, x_label, 'fontsize', labelsize, 'fontname', labelfont);
 ylabel(ax, y_label, 'fontsize', labelsize, 'fontname', labelfont);
-
-if doExport 
+ 
+filename = [];
+if doExport
     filename = fullfile(outputfolder, sprintf('%s_%s.%s', expname, y_field, format));
     export_fig(fig, filename, printoptions{:}); 
-    if nargout > 0
-        varargout{1} = filename;
-    end
+end
+
+if nargout > 0
+    varargout{1} = filename;
 end
 
 end

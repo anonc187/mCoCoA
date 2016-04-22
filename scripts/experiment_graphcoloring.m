@@ -9,30 +9,28 @@ settings.nMaxIterations = [];
 settings.nStableIterations = 100;
 settings.nagents = 200;
 settings.visualizeProgress = true;
-settings.makeRandomConstraintCosts = true;
 
 %% Create the experiment options
-options.ncolors = uint16(5);
+options.ncolors = uint16(3);
 % options.constraint.type = 'org.anon.cocoa.constraints.InequalityConstraint';
 % options.constraint.arguments = {1};
 options.constraint.type = 'org.anon.cocoa.constraints.CostMatrixConstraint';
-% options.constraint.arguments = {[[1 0 3];[3 1 0];[0 3 1]], [[1 0 3];[3 1 0];[0 3 1]]};
+options.constraint.arguments = {[[1 0 3];[3 1 0];[0 3 1]], [[1 0 3];[3 1 0];[0 3 1]]};
 % options.constraint.type = 'org.anon.cocoa.constraints.SemiRandomConstraint';
-% options.constraint.type = 'org.anon.cocoa.constraints.RandomConstraint';
 
 % options.graphType = @scalefreeGraph;
 % options.graph.maxLinks = uint16(4);
 % options.graph.initialsize = uint16(10);
 
 % options.graphType = @randomGraph;
-% options.graph.density = 0.1;
+% options.graph.density = 0.05;
 
-% options.graphType = @delaunayGraph;
-% options.graph.sampleMethod = 'poisson';
+options.graphType = @delaunayGraph;
+options.graph.sampleMethod = 'poisson';
 
-options.graphType = @nGridGraph;
-options.graph.nDims = uint16(3);
-options.graph.doWrap = '';
+% options.graphType = @nGridGraph;
+% options.graph.nDims = uint16(3);
+% options.graph.doWrap = '';
 
 options.graph.nAgents = uint16(settings.nagents);
 
@@ -70,33 +68,25 @@ expname = sprintf('exp_%s_%s_i%d_d%d_n%d_t%s', C{end}, func2str(options.graphTyp
 clear handles;
 for e = 1:settings.numExps
     edges = feval(options.graphType, options.graph);
-    
-    if isfield(settings, 'makeRandomConstraintCosts') && settings.makeRandomConstraintCosts
-        constraintCosts = randi(10, options.ncolors, options.ncolors, numel(edges));
-        options.constraint.arguments = arrayfun(@(x) constraintCosts(:,:,x), 1:numel(edges), 'UniformOutput', false);
-    else
-        options.constraint.arguments = {};
-    end
-    
+
     for a = 1:numel(solvertypes)
         solvername = solvertypes{a};
         options.solverType = solvers.(solvername);
 
-%         try
+        try
             fprintf('Performing experiment with %s (%d/%d)\n', solvername, e, settings.numExps);
             exp = doExperiment(edges, options);
             fprintf('Finished in t = %0.1f seconds\n', exp.time);
-%         catch err
-%             warning('Timeout or error occured:');
-%             disp(err);
-%             
-%             exp.time = nan;
-%             exp.allcost = nan;
-%             exp.allevals = nan;
-%             exp.allmsgs = nan;
-%             exp.iterations = nan;
-%             exp.alltimes = nan;
-%         end
+        catch err
+            warning('Timeout or error occured:');
+            disp(err);
+            
+            exp.time = nan;
+            exp.allcost = nan;
+            exp.allevals = nan;
+            exp.allmsgs = nan;
+            exp.iterations = nan;
+        end
             
         results.(solvername).costs{e} = exp.allcost; 
         results.(solvername).evals{e} = exp.allevals;
@@ -120,19 +110,16 @@ for e = 1:settings.numExps
                 handles.fig = figure(007);
                 handles.ax = gca(handles.fig);
                 hold(handles.ax, 'on');
-                legendentries = {};
-                %handles.legend = legend(handles.ax, solvertypes);
+                handles.legend = legend(handles.ax, solvertypes);
             end
 
             if ~isfield(handles, solvername) || ~ishandle(handles.(solvername))
                 handles.(solvername) = plot(xdata, ydata, 'parent', handles.ax, style{:});
-                legendentries = [legendentries solvername];
-                %handles.legend = legend(handles.ax, solvertypes);
+                handles.legend = legend(handles.ax, solvertypes);
             else
                 set(handles.(solvername), 'XData', xdata, 'YData', ydata, style{:});
             end
-            
-            legend(handles.ax, legendentries);
+
             drawnow;
         end
     end
@@ -145,21 +132,18 @@ save(fullfile('data', sprintf('%s_results.mat', expname)), 'settings', 'options'
 %% Create graph
 
 graphoptions = getGraphOptions();
-graphoptions.figure.number = 188;
 graphoptions.axes.yscale = 'linear'; % True for most situations
-graphoptions.axes.xscale = 'linear';
 graphoptions.axes.ymin = [];
-graphoptions.axes.xmax = 250;
-graphoptions.export.do = false;
+% graphoptions.export.do = false;
 % graphoptions.export.name = expname;
 graphoptions.label.Y = 'Solution Cost';
-% graphoptions.label.X = 'Time';
+graphoptions.label.X = 'Time';
 graphoptions.plot.errorbar = false;
 graphoptions.plot.emphasize = []; %'CoCoA';
 % graphoptions.legend.location = 'NorthEast';
 % graphoptions.legend.orientation = 'Horizontal';
-% graphoptions.plot.x_fun = @(x) 1:max(x);
-% graphoptions.plot.range = 1:1600;
-resultsMat = prepareResults(results); %, graphoptions.plot.range);
+% graphoptions.plot.x_fun = @(x) 1:x;
+graphoptions.plot.range = 1:800;
+resultsMat = prepareResults(results, graphoptions.plot.range);
 createResultGraph(resultsMat, 'times', 'costs', graphoptions);
 

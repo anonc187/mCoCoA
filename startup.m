@@ -18,7 +18,10 @@ if (exist(javapath, 'dir'))
     javaaddpath(javapath)
 else
     % Add the library
-    javaaddpath(fullfile(rootpath, 'lib', 'org.anon.cocoa_1.1.jar'));
+    javaaddpath(fullfile(rootpath, 'lib', 'org.anon.cocoa_1.0.jar'));
 end
+
+javaaddpath(fullfile(rootpath, 'lib', 'frodo2-0.0.1-SNAPSHOT-jar-with-dependencies.jar'));
+javaaddpath(fullfile(rootpath, 'lib', 'gson-2.6.2.jar'));
 
 end
