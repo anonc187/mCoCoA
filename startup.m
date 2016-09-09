@@ -5,6 +5,7 @@ rootpath = fileparts(mfilename('fullpath'));
 
 % Add relevant matlab folders
 addpath(rootpath);
+addpath(fullfile(rootpath, 'experiment'));
 addpath(fullfile(rootpath, 'functions'));
 addpath(fullfile(rootpath, 'functions', 'util'));
 addpath(fullfile(rootpath, 'functions', 'BA'));
@@ -18,10 +19,11 @@ if (exist(javapath, 'dir'))
     javaaddpath(javapath)
 else
     % Add the library
-    javaaddpath(fullfile(rootpath, 'lib', 'org.anon.cocoa_1.0.jar'));
+    javalib = fullfile(rootpath, 'lib', 'jCoCoA.jar');
+    javaaddpath(javalib);
 end
 
-javaaddpath(fullfile(rootpath, 'lib', 'frodo2-0.0.1-SNAPSHOT-jar-with-dependencies.jar'));
-javaaddpath(fullfile(rootpath, 'lib', 'gson-2.6.2.jar'));
+dependOnLib(fullfile(rootpath, 'lib', 'gson-2.7.jar'), ...
+    'http://central.maven.org/maven2/com/google/code/gson/gson/2.7/gson-2.7.jar');
 
 end

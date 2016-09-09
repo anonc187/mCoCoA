@@ -6,16 +6,19 @@ warning('off', 'MATLAB:legend:IgnoringExtraEntries');
 %% Overall experiment settings
 settings.numExps = 100; % i.e. number of problems generated
 settings.nStableIterations = 100;
-settings.nagents = 200;
-settings.ncolors = 10;
-settings.visualizeProgress = true;
 settings.nMaxIterations = 0;
+settings.nagents = 50;
+settings.ncolors = 11;
+settings.visualizeProgress = true;
 settings.graphType = @scalefreeGraph;
 settings.series = 'aaai17';
 
 %% Create the experiment options
 options.ncolors = uint16(settings.ncolors);
-options.constraint.type = 'org.anon.cocoa.constraints.SemiRandomConstraint';
+
+modelCosts = load('modelCosts.mat');
+options.constraint.type = 'org.anon.cocoa.constraints.CostMatrixConstraint';
+options.constraint.arguments = {repmat(modelCosts.Qcost, numel(modelCosts.Qcost), 1)};
 
 if isequal(settings.graphType, @scalefreeGraph)
     options.graphType = @scalefreeGraph;
@@ -96,7 +99,7 @@ solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MaxSumADVPVariableSolver';
 for e = 1:settings.numExps
     edges = feval(options.graphType, options.graph);
 
-    exp = GraphColoringExperiment(edges, options);
+    exp = SensorNetworkExperiment(edges, options);
     
     for a = 1:numel(solvers)
         solvername = solvers(a).name;
@@ -108,16 +111,16 @@ for e = 1:settings.numExps
             fprintf('Performing experiment with %s (%d/%d)\n', solvername, e, settings.numExps);
             
             % Speed up to avoid having to run ALL solvers for so long
-            if ~isempty(strfind('Max-Sum', solvername))
-                fprintf('Providing extra time for %s\n', solvername);
-                exp.nStableIterations = 5 * uint16(settings.nStableIterations);
-            elseif ~isempty(strfind('MCSMGM', solvername))
-                fprintf('Providing extra time for %s\n', solvername);
-                exp.nStableIterations = 2.5 * uint16(settings.nStableIterations);
-            else
-                exp.nStableIterations = uint16(settings.nStableIterations);
-            end
-            
+%             if ~isempty(strfind('Max-Sum', solvername))
+%                 fprintf('Providing extra time for %s\n', solvername);
+%                 exp.nStableIterations = 5 * uint16(settings.nStableIterations);
+%             elseif ~isempty(strfind('MCSMGM', solvername))
+%                 fprintf('Providing extra time for %s\n', solvername);
+%                 exp.nStableIterations = 2.5 * uint16(settings.nStableIterations);
+%             else
+%                 exp.nStableIterations = uint16(settings.nStableIterations);
+%             end
+%             
             exp.run();
             fprintf('Finished in t = %0.1f seconds\n\n', exp.results.time(end));
             
@@ -132,21 +135,22 @@ for e = 1:settings.numExps
             end
         catch err
             warning('Timeout or error occured:');
-            disp(err);
+            rethrow(err);
         end
     end
 end
 
 %% Save results
-filename = sprintf('results_semirandom_%s_i%d_d%d_n%d_t%s.mat', func2str(settings.graphType), settings.numExps, settings.ncolors, settings.nagents, datestr(now,30))
+filename = sprintf('results_sensornet_%s_i%d_d%d_n%d_t%s.mat', func2str(settings.graphType), settings.numExps, settings.ncolors, settings.nagents, datestr(now,30))
 save(fullfile('data', settings.series, filename), 'settings', 'options', 'solvers', 'results');
 
 %% Create graph
 
 graphoptions = getGraphOptions();
 graphoptions.figure.number = 188;
-graphoptions.axes.yscale = 'linear';
-graphoptions.axes.xscale = 'linear';
+graphoptions.axes.yscale = 'log';
+graphoptions.axes.xscale = 'log';
+% graphoptions.axes.xmax = 5;
 graphoptions.export.do = false;
 graphoptions.label.Y = 'Solution Cost';
 graphoptions.label.X = 'Time (s)';

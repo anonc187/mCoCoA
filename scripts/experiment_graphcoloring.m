@@ -5,145 +5,147 @@ warning('off', 'MATLAB:legend:IgnoringExtraEntries');
 
 %% Overall experiment settings
 settings.numExps = 100; % i.e. number of problems generated
-settings.nMaxIterations = [];
+settings.nMaxIterations = 0;
 settings.nStableIterations = 100;
 settings.nagents = 200;
+settings.ncolors = 3;
 settings.visualizeProgress = true;
+settings.graphType = @delaunayGraph;
+settings.series = 'aaai17';
 
 %% Create the experiment options
-options.ncolors = uint16(3);
-% options.constraint.type = 'org.anon.cocoa.constraints.InequalityConstraint';
-% options.constraint.arguments = {1};
-options.constraint.type = 'org.anon.cocoa.constraints.CostMatrixConstraint';
-options.constraint.arguments = {[[1 0 3];[3 1 0];[0 3 1]], [[1 0 3];[3 1 0];[0 3 1]]};
-% options.constraint.type = 'org.anon.cocoa.constraints.SemiRandomConstraint';
+options.ncolors = uint16(settings.ncolors);
+options.constraint.type = 'org.anon.cocoa.constraints.InequalityConstraint';
 
-% options.graphType = @scalefreeGraph;
-% options.graph.maxLinks = uint16(4);
-% options.graph.initialsize = uint16(10);
-
-% options.graphType = @randomGraph;
-% options.graph.density = 0.05;
-
-options.graphType = @delaunayGraph;
-options.graph.sampleMethod = 'poisson';
-
-% options.graphType = @nGridGraph;
-% options.graph.nDims = uint16(3);
-% options.graph.doWrap = '';
+if isequal(settings.graphType, @scalefreeGraph)
+    options.graphType = @scalefreeGraph;
+    options.graph.maxLinks = uint16(4);
+    options.graph.initialsize = uint16(10);
+elseif isequal(settings.graphType, @randomGraph)
+    options.graphType = @randomGraph;
+    options.graph.density = 0.05;
+elseif isequal(settings.graphType, @delaunayGraph)
+    options.graphType = @delaunayGraph;
+    options.graph.sampleMethod = 'poisson';
+elseif isequal(settings.graphType, @nGridGraph)
+    options.graphType = @nGridGraph;
+    options.graph.nDims = uint16(3);
+    options.graph.doWrap = '';
+end
 
 options.graph.nAgents = uint16(settings.nagents);
-
 options.nStableIterations = uint16(settings.nStableIterations);
 options.nMaxIterations = uint16(settings.nMaxIterations);
-options.maxTime = 120;
-options.waitTime = 1;
-options.keepCostGraph = true;
-
-solvers.ACLS = 'org.anon.cocoa.solvers.ACLSSolver';
-% solvers.ACLSUB = 'org.anon.cocoa.solvers.ACLSUBSolver';
-% solvers.ACLSProb = 'org.anon.cocoa.solvers.ACLSProbSolver';
-% solvers.AFB = 'org.anon.cocoa.solvers.FBSolver';
-% solvers.CFL = 'org.anon.cocoa.solvers.TickCFLSolver';
-solvers.CoCoA = 'org.anon.cocoa.solvers.UniqueFirstCooperativeSolver';
-solvers.CoCoS = 'org.anon.cocoa.solvers.CoCoSolver';
-solvers.DSA = 'org.anon.cocoa.solvers.DSASolver';
-% solvers.Greedy = 'org.anon.cocoa.solvers.GreedySolver';
-% solvers.MaxSum = 'org.anon.cocoa.solvers.MaxSumVariableSolver';
-% solvers.MaxSumAD = 'org.anon.cocoa.solvers.MaxSumADVariableSolver';
-solvers.MaxSumADVP = 'org.anon.cocoa.solvers.MaxSumADVPVariableSolver';
-solvers.MCSMGM = 'org.anon.cocoa.solvers.MCSMGMSolver';
-% solvers.MGM = 'org.anon.cocoa.solvers.MGMSolver';
-solvers.MGM2 = 'org.anon.cocoa.solvers.MGM2Solver';
-% solvers.Random = 'org.anon.cocoa.solvers.RandomSolver';
-% solvers.SCA2 = 'org.anon.cocoa.solvers.SCA2Solver';
 
 %%
-solvertypes = fieldnames(solvers);
+solvers = {};
 
-C = strsplit(options.constraint.type, '.');
-expname = sprintf('exp_%s_%s_i%d_d%d_n%d_t%s', C{end}, func2str(options.graphType), settings.numExps, options.ncolors, settings.nagents, datestr(now,30));
+solvers(end+1).name = 'CoCoA';
+solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoSolver';
+solvers(end).iterSolverType = '';
 
-% Do the experiment
-clear handles;
+solvers(end+1).name = 'CoCoA_UF';
+solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
+solvers(end).iterSolverType = '';
+
+solvers(end+1).name = 'ACLS';
+solvers(end).initSolverType = '';
+solvers(end).iterSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
+
+% solvers(end+1).name = 'CoCoA - ACLS';
+% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
+% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
+
+% solvers(end+1).name = 'CoCoA - ACLSUB';
+% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
+% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
+
+solvers(end+1).name = 'DSA';
+solvers(end).initSolverType = '';
+solvers(end).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
+
+% solvers(end+1).name = 'CoCoA - DSA';
+% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
+% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
+
+solvers(end+1).name = 'MCSMGM';
+solvers(end).initSolverType = '';
+solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+
+% solvers(end+1).name = 'CoCoA - MCSMGM';
+% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
+% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+
+solvers(end+1).name = 'MGM2';
+solvers(end).initSolverType = '';
+solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
+
+% solvers(end+1).name = 'CoCoA - MGM2';
+% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
+% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
+
+% solvers(end+1).name = 'Max-Sum_ADVP';
+% solvers(end).initSolverType = '';
+% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MaxSumADVPVariableSolver';
+
+% solvers(end+1).name = 'CoCoA - Max-Sum_ADVP';
+% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
+% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MaxSumADVPVariableSolver';
+
+%% Do the experiment
 for e = 1:settings.numExps
     edges = feval(options.graphType, options.graph);
 
-    for a = 1:numel(solvertypes)
-        solvername = solvertypes{a};
-        options.solverType = solvers.(solvername);
-
+    exp = GraphColoringExperiment(edges, options);
+    
+    for a = 1:numel(solvers)
+        solvername = solvers(a).name;
+        solverfield = matlab.lang.makeValidName(solvername);
+        exp.initSolverType = solvers(a).initSolverType;
+        exp.iterSolverType = solvers(a).iterSolverType; 
+        
         try
             fprintf('Performing experiment with %s (%d/%d)\n', solvername, e, settings.numExps);
-            exp = doExperiment(edges, options);
-            fprintf('Finished in t = %0.1f seconds\n', exp.time);
+            
+            exp.run();
+            fprintf('Finished in t = %0.1f seconds\n', exp.results.time(end));
+            
+            results.(solverfield).costs{e} = exp.results.cost; 
+            results.(solverfield).evals{e} = exp.results.evals;
+            results.(solverfield).msgs{e} = exp.results.msgs;
+            results.(solverfield).times{e} = exp.results.time;
+            results.(solverfield).iterations(e) = exp.results.numIters;
+            
+            if settings.visualizeProgress
+                visualizeProgress(exp, solverfield);
+            end
         catch err
             warning('Timeout or error occured:');
             disp(err);
-            
-            exp.time = nan;
-            exp.allcost = nan;
-            exp.allevals = nan;
-            exp.allmsgs = nan;
-            exp.iterations = nan;
-        end
-            
-        results.(solvername).costs{e} = exp.allcost; 
-        results.(solvername).evals{e} = exp.allevals;
-        results.(solvername).msgs{e} = exp.allmsgs;
-        results.(solvername).times{e} = exp.alltimes;
-        results.(solvername).iterations(e) = exp.iterations;
-        
-        if settings.visualizeProgress
-            % Visualize data
-            ydata = exp.allcost;
-            xdata = exp.alltimes;
-
-            if numel(ydata) == 1
-                style = {'LineStyle', 'none', 'Marker', 'o'};
-            else
-                style = {'LineStyle', '-', 'Marker', 'none'};
-            end
-            
-            if ~exist('handles', 'var') || ~isfield(handles, 'fig') || ~ishandle(handles.fig)
-                % Create figure
-                handles.fig = figure(007);
-                handles.ax = gca(handles.fig);
-                hold(handles.ax, 'on');
-                handles.legend = legend(handles.ax, solvertypes);
-            end
-
-            if ~isfield(handles, solvername) || ~ishandle(handles.(solvername))
-                handles.(solvername) = plot(xdata, ydata, 'parent', handles.ax, style{:});
-                handles.legend = legend(handles.ax, solvertypes);
-            else
-                set(handles.(solvername), 'XData', xdata, 'YData', ydata, style{:});
-            end
-
-            drawnow;
         end
     end
 end
 
 %% Save results
-
-save(fullfile('data', sprintf('%s_results.mat', expname)), 'settings', 'options', 'solvers', 'results');
+filename = sprintf('results_graphColoring_%s_i%d_d%d_n%d_t%s.mat', func2str(settings.graphType), settings.numExps, settings.ncolors, settings.nagents, datestr(now,30))
+save(fullfile('data', settings.series, filename), 'settings', 'options', 'solvers', 'results');
 
 %% Create graph
 
 graphoptions = getGraphOptions();
 graphoptions.axes.yscale = 'linear'; % True for most situations
-graphoptions.axes.ymin = [];
+% graphoptions.axes.ymin = 0;
+graphoptions.axes.xmax = 2;
 % graphoptions.export.do = false;
 % graphoptions.export.name = expname;
 graphoptions.label.Y = 'Solution Cost';
 graphoptions.label.X = 'Time';
 graphoptions.plot.errorbar = false;
-graphoptions.plot.emphasize = []; %'CoCoA';
+% graphoptions.plot.emphasize = {'CoCoA'};
 % graphoptions.legend.location = 'NorthEast';
 % graphoptions.legend.orientation = 'Horizontal';
 % graphoptions.plot.x_fun = @(x) 1:x;
-graphoptions.plot.range = 1:800;
+graphoptions.plot.range = [];
 resultsMat = prepareResults(results, graphoptions.plot.range);
 createResultGraph(resultsMat, 'times', 'costs', graphoptions);
 
