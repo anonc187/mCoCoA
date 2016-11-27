@@ -5,20 +5,17 @@ warning('off', 'MATLAB:legend:IgnoringExtraEntries');
 
 %% Overall experiment settings
 settings.numExps = 100; % i.e. number of problems generated
-settings.nStableIterations = 100;
 settings.nMaxIterations = 0;
-settings.nagents = 50;
-settings.ncolors = 11;
+settings.nStableIterations = 100;
+settings.nagents = 200;
+settings.ncolors = 4;
 settings.visualizeProgress = true;
-settings.graphType = @scalefreeGraph;
-settings.series = 'aaai17';
+settings.graphType = @nGridGraph;
+settings.series = 'hybrid+';
 
 %% Create the experiment options
 options.ncolors = uint16(settings.ncolors);
-
-modelCosts = load('modelCosts.mat');
-options.constraint.type = 'org.anon.cocoa.constraints.CostMatrixConstraint';
-options.constraint.arguments = {repmat(modelCosts.Qcost, numel(modelCosts.Qcost), 1)};
+options.constraint.type = 'org.anon.cocoa.constraints.InequalityConstraint';
 
 if isequal(settings.graphType, @scalefreeGraph)
     options.graphType = @scalefreeGraph;
@@ -43,11 +40,19 @@ options.nMaxIterations = uint16(settings.nMaxIterations);
 %% Solvers
 solvers = getExperimentSolvers(settings.series);
 
+% Take out max-sum, it is no use for coloring problems
+k = arrayfun(@(x) isempty(strfind(x.name, 'Max-Sum')), solvers);
+solvers = solvers(k);
+
+% Take out the non-hybrids
+k = arrayfun(@(x) ~isempty(x.iterSolverType), solvers);
+solvers = solvers(k);
+
 %% Do the experiment
 for e = 1:settings.numExps
     edges = feval(options.graphType, options.graph);
 
-    exp = SensorNetworkExperiment(edges, options);
+    exp = SwitchingSolverGCE(edges, options);
     
     for a = 1:numel(solvers)
         solvername = solvers(a).name;
@@ -55,11 +60,13 @@ for e = 1:settings.numExps
         exp.initSolverType = solvers(a).initSolverType;
         exp.iterSolverType = solvers(a).iterSolverType; 
         
-        try
+%         try
             fprintf('Performing experiment with %s (%d/%d)\n', solvername, e, settings.numExps);
-
+            
+            exp.runI(100);
+            exp.switchSolver();
             exp.run();
-            fprintf('Finished in t = %0.1f seconds\n\n', exp.results.time(end));
+            fprintf('\nFinished in t = %0.1f seconds\n', exp.results.time(end));
             
             results.(solverfield).costs{e} = exp.results.cost; 
             results.(solverfield).evals{e} = exp.results.evals;
@@ -70,32 +77,33 @@ for e = 1:settings.numExps
             if settings.visualizeProgress
                 visualizeProgress(exp, solverfield);
             end
-        catch err
-            warning('Timeout or error occured:');
-            rethrow(err);
-        end
+%         catch err
+%             warning('Timeout or error occured:');
+%             disp(err);
+%         end
     end
 end
 
 %% Save results
-filename = sprintf('results_sensornet_%s_i%d_d%d_n%d_t%s.mat', func2str(settings.graphType), settings.numExps, settings.ncolors, settings.nagents, datestr(now,30))
+filename = sprintf('results_graphColoring_%s_i%d_d%d_n%d_t%s.mat', func2str(settings.graphType), settings.numExps, settings.ncolors, settings.nagents, datestr(now,30))
 save(fullfile('data', settings.series, filename), 'settings', 'options', 'solvers', 'results');
 
 %% Create graph
 
 graphoptions = getGraphOptions();
-graphoptions.figure.number = 188;
-graphoptions.axes.yscale = 'log';
-graphoptions.axes.xscale = 'log';
-% graphoptions.axes.xmax = 5;
-graphoptions.export.do = false;
+graphoptions.axes.yscale = 'linear'; % True for most situations
+graphoptions.axes.ymin = .4;
+graphoptions.axes.xmax = 10;
+% graphoptions.export.do = false;
+% graphoptions.export.name = expname;
 graphoptions.label.Y = 'Solution Cost';
-graphoptions.label.X = 'Time (s)';
+graphoptions.label.X = 'Time';
 graphoptions.plot.errorbar = false;
 % graphoptions.plot.emphasize = {'CoCoA'};
 % graphoptions.legend.location = 'NorthEast';
 % graphoptions.legend.orientation = 'Horizontal';
-% graphoptions.plot.x_fun = @(x) 1:max(x);
-% graphoptions.plot.range = 1:1600;
-resultsMat = prepareResults(results); %, graphoptions.plot.range);
+% graphoptions.plot.x_fun = @(x) 1:x;
+graphoptions.plot.range = [];
+resultsMat = prepareResults(results, graphoptions.plot.range);
 createResultGraph(resultsMat, 'times', 'costs', graphoptions);
+

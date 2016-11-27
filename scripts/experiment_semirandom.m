@@ -11,7 +11,7 @@ settings.ncolors = 10;
 settings.visualizeProgress = true;
 settings.nMaxIterations = 0;
 settings.graphType = @scalefreeGraph;
-settings.series = 'aaai17';
+settings.series = 'ijcai17';
 
 %% Create the experiment options
 options.ncolors = uint16(settings.ncolors);
@@ -37,60 +37,8 @@ options.graph.nAgents = uint16(settings.nagents);
 options.nStableIterations = uint16(settings.nStableIterations);
 options.nMaxIterations = uint16(settings.nMaxIterations);
 
-%%
-solvers = {};
-
-solvers(end+1).name = 'CoCoA';
-solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoSolver';
-solvers(end).iterSolverType = '';
-
-solvers(end+1).name = 'CoCoA_UF';
-solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
-solvers(end).iterSolverType = '';
-
-solvers(end+1).name = 'ACLS';
-solvers(end).initSolverType = '';
-solvers(end).iterSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
-
-% solvers(end+1).name = 'CoCoA - ACLS';
-% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
-% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
-
-% solvers(end+1).name = 'CoCoA - ACLSUB';
-% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
-% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
-
-solvers(end+1).name = 'DSA';
-solvers(end).initSolverType = '';
-solvers(end).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
-
-% solvers(end+1).name = 'CoCoA - DSA';
-% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
-% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
-
-solvers(end+1).name = 'MCSMGM';
-solvers(end).initSolverType = '';
-solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
-
-% solvers(end+1).name = 'CoCoA - MCSMGM';
-% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
-% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
-
-solvers(end+1).name = 'MGM2';
-solvers(end).initSolverType = '';
-solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
-
-% solvers(end+1).name = 'CoCoA - MGM2';
-% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
-% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
-
-solvers(end+1).name = 'Max-Sum';
-solvers(end).initSolverType = '';
-solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MaxSumADVPVariableSolver';
-
-% solvers(end+1).name = 'CoCoA - Max-Sum_ADVP';
-% solvers(end).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
-% solvers(end).iterSolverType = 'org.anon.cocoa.solvers.MaxSumADVPVariableSolver';
+%% Solvers
+solvers = getExperimentSolvers(settings.series);
 
 %% Do the experiment
 for e = 1:settings.numExps
@@ -108,12 +56,12 @@ for e = 1:settings.numExps
             fprintf('Performing experiment with %s (%d/%d)\n', solvername, e, settings.numExps);
             
             % Speed up to avoid having to run ALL solvers for so long
-            if ~isempty(strfind('Max-Sum', solvername))
+            if ~isempty(strfind(solvername, 'Max-Sum'))
                 fprintf('Providing extra time for %s\n', solvername);
                 exp.nStableIterations = 5 * uint16(settings.nStableIterations);
-            elseif ~isempty(strfind('MCSMGM', solvername))
+            elseif ~isempty(strfind(solvername, 'MCSMGM'))
                 fprintf('Providing extra time for %s\n', solvername);
-                exp.nStableIterations = 2.5 * uint16(settings.nStableIterations);
+                exp.nStableIterations = 5 * uint16(settings.nStableIterations);
             else
                 exp.nStableIterations = uint16(settings.nStableIterations);
             end
@@ -147,6 +95,7 @@ graphoptions = getGraphOptions();
 graphoptions.figure.number = 188;
 graphoptions.axes.yscale = 'linear';
 graphoptions.axes.xscale = 'linear';
+graphoptions.axes.xmax = 80;
 graphoptions.export.do = false;
 graphoptions.label.Y = 'Solution Cost';
 graphoptions.label.X = 'Time (s)';
