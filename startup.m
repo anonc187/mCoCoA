@@ -13,7 +13,7 @@ addpath(fullfile(rootpath, 'functions', 'graph'));
 addpath(fullfile(rootpath, 'scripts'));
 
 % Check if there is a live java build
-javapath = fullfile(getenv('path_java'), 'jCoCoA', 'bin');
+javapath = fullfile(rootpath, '..', 'jCoCoA', 'bin');
 if (exist(javapath, 'dir'))
     % Add the live java folder
     javaaddpath(javapath)
