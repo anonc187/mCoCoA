@@ -24,7 +24,7 @@ if nargin > 0 && ~isempty(series)
         case 'wpt'
             idx = 13;
         case 'hybrid+'
-            idx = 16:22;
+            idx = [3 5 7 9 11 16:35];
         otherwise
             error('Unknown series %s', series);
     end
@@ -90,33 +90,85 @@ solvers(15).name = 'CoCoA - Max-Sum_ADVP';
 solvers(15).initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
 solvers(15).iterSolverType = 'org.anon.cocoa.solvers.MaxSumADVPVariableSolver';
 
-solvers(16).name = 'MGM2_DSA';
-solvers(16).initSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
-solvers(16).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
+solvers(16).name = 'ACLS_ACLSUB';
+solvers(16).initSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
+solvers(16).iterSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
 
 solvers(17).name = 'ACLS_DSA';
 solvers(17).initSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
 solvers(17).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
 
-solvers(18).name = 'DSA_MGM2';
-solvers(18).initSolverType = 'org.anon.cocoa.solvers.DSASolver';
+solvers(18).name = 'ACLS_MGM2';
+solvers(18).initSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
 solvers(18).iterSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
 
-solvers(19).name = 'DSA_MCSMGM';
-solvers(19).initSolverType = 'org.anon.cocoa.solvers.DSASolver';
+solvers(19).name = 'ACLS_MCSMGM';
+solvers(19).initSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
 solvers(19).iterSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
 
-solvers(20).name = 'MCSMGM_DSA';
-solvers(20).initSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
-solvers(20).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
+solvers(20).name = 'ACLSUB_ACLS';
+solvers(20).initSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
+solvers(20).iterSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
 
-solvers(21).name = 'ACLS_MCSMGM';
-solvers(21).initSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
-solvers(21).iterSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+solvers(21).name = 'ACLSUB_DSA';
+solvers(21).initSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
+solvers(21).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
 
-solvers(22).name = 'MCSMGM_ACLS';
-solvers(22).initSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
-solvers(22).iterSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
+solvers(22).name = 'ACLSUB_MGM2';
+solvers(22).initSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
+solvers(22).iterSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
+
+solvers(23).name = 'ACLSUB_MCSMGM';
+solvers(23).initSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
+solvers(23).iterSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+
+solvers(24).name = 'DSA_ACLS';
+solvers(24).initSolverType = 'org.anon.cocoa.solvers.DSASolver';
+solvers(24).iterSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
+
+solvers(25).name = 'DSA_ACLSUB';
+solvers(25).initSolverType = 'org.anon.cocoa.solvers.DSASolver';
+solvers(25).iterSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
+
+solvers(26).name = 'DSA_MGM2';
+solvers(26).initSolverType = 'org.anon.cocoa.solvers.DSASolver';
+solvers(26).iterSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
+
+solvers(27).name = 'DSA_MCSMGM';
+solvers(27).initSolverType = 'org.anon.cocoa.solvers.DSASolver';
+solvers(27).iterSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+
+solvers(28).name = 'MGM2_ACLS';
+solvers(28).initSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
+solvers(28).iterSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
+
+solvers(29).name = 'MGM2_ACLSUB';
+solvers(29).initSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
+solvers(29).iterSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
+
+solvers(30).name = 'MGM2_DSA';
+solvers(30).initSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
+solvers(30).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
+
+solvers(31).name = 'MGM2_MCSMGM';
+solvers(31).initSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
+solvers(31).iterSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+
+solvers(32).name = 'MCSMGM_ACLS';
+solvers(32).initSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+solvers(32).iterSolverType = 'org.anon.cocoa.solvers.ACLSSolver';
+
+solvers(33).name = 'MCSMGM_ACLSUB';
+solvers(33).initSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+solvers(33).iterSolverType = 'org.anon.cocoa.solvers.ACLSUBSolver';
+
+solvers(34).name = 'MCSMGM_DSA';
+solvers(34).initSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+solvers(34).iterSolverType = 'org.anon.cocoa.solvers.DSASolver';
+
+solvers(35).name = 'MCSMGM_MGM2';
+solvers(35).initSolverType = 'org.anon.cocoa.solvers.MCSMGMSolver';
+solvers(35).iterSolverType = 'org.anon.cocoa.solvers.MGM2Solver';
 
 %% Select based on series
 if exist('idx', 'var')
