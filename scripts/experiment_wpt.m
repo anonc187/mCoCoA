@@ -25,8 +25,8 @@ if false
     options.initSolverType = '';
     options.iterSolverType = 'org.anon.cocoa.solvers.MaxSumVariableSolver';
 else
-    options.initSolverType = 'org.anon.cocoa.solvers.CoCoASolver';
-    options.iterSolverType = ''; %org.anon.cocoa.solvers.DSASolver';
+    options.initSolverType = 'org.anon.cocoa.solvers.CoCoAWPTSolver';
+    options.iterSolverType = '';%org.anon.cocoa.solvers.DSASolver';
 end
 
 %% Build the scenario
@@ -69,7 +69,7 @@ results = exp.results;
 
 x_cocoa = cellfun(@(x) double(x.getValue()), exp.variable)
 fval_cocoa = exp.getCost()
-
+plot(exp.results.cost)
 %% Now call Sinan's code
 alpha = 1;
 MAX_POWER = 10;
