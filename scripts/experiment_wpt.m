@@ -119,3 +119,24 @@ A*x_cocoa
 % 
 % t2s(~t2s_mask) = inf;
 
+%% Save results
+saveResults
+
+%% Create graph
+
+graphoptions = getGraphOptions();
+graphoptions.figure.number = 188;
+graphoptions.axes.yscale = 'log';
+graphoptions.axes.xscale = 'log';
+% graphoptions.axes.xmax = 5;
+graphoptions.export.do = false;
+graphoptions.label.Y = 'Solution Cost';
+graphoptions.label.X = 'Time (s)';
+graphoptions.plot.errorbar = false;
+% graphoptions.plot.emphasize = {'CoCoA'};
+% graphoptions.legend.location = 'NorthEast';
+% graphoptions.legend.orientation = 'Horizontal';
+% graphoptions.plot.x_fun = @(x) 1:max(x);
+% graphoptions.plot.range = 1:1600;
+resultsMat = prepareResults(results); %, graphoptions.plot.range);
+createResultGraph(resultsMat, 'times', 'costs', graphoptions);
