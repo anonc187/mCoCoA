@@ -68,7 +68,7 @@ classdef WPTExperiment < Experiment
                 agentName = sprintf('agent%05d', i);
                 
                 obj.variable{i} = org.anon.cocoa.variables.FixedPrecisionVariable(0, 10, 10 / double(obj.nColors), varName);
-                obj.agent{i} = org.anon.cocoa.agents.VariableAgent(obj.variable{i}, agentName, org.anon.cocoa.agents.SolverAgent.MULTI_THREADED);
+                obj.agent{i} = org.anon.cocoa.agents.VariableAgent(obj.variable{i}, agentName);
                 
                 obj.variable{i}.set('position', obj.agentProps(i).position);
                 
