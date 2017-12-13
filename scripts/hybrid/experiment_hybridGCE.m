@@ -8,15 +8,15 @@ settings.numExps = 200; % i.e. number of problems generated
 settings.nMaxIterations = 0;
 settings.nStableIterations = 100;
 settings.nagents = 200;
-settings.ncolors = 3;
+settings.ncolors = 10;
 settings.visualizeProgress = true;
-settings.graphType = @delaunayGraph; %@scalefreeGraph;
+settings.graphType = @randomGraph;
 settings.series = 'hybrid';
 
 %% Create the experiment options
 options.ncolors = uint16(settings.ncolors);
-options.constraint.type = 'org.anon.cocoa.constraints.InequalityConstraint';
-% options.constraint.type = 'org.anon.cocoa.constraints.SemiRandomConstraint';
+% options.constraint.type = 'org.anon.cocoa.constraints.InequalityConstraint';
+options.constraint.type = 'org.anon.cocoa.constraints.SemiRandomConstraint';
 % options.debug = true;
 % options.ssetrack = true;
 
@@ -26,7 +26,7 @@ if isequal(settings.graphType, @scalefreeGraph)
     options.graph.initialsize = uint16(10);
 elseif isequal(settings.graphType, @randomGraph)
     options.graphType = @randomGraph;
-    options.graph.density = 0.1;
+    options.graph.density = 0.3;
 elseif isequal(settings.graphType, @delaunayGraph)
     options.graphType = @delaunayGraph;
     options.graph.sampleMethod = 'poisson';
@@ -44,16 +44,16 @@ options.nMaxIterations = uint16(settings.nMaxIterations);
 initSolver.Random = 'org.anon.cocoa.solvers.RandomSolver';
 initSolver.Greedy = 'org.anon.cocoa.solvers.GreedySolver';
 % initSolver.CoCoA = 'org.anon.cocoa.solvers.CoCoSolver';
-initSolver.CoCoA_UF = 'org.anon.cocoa.solvers.CoCoASolver';
-% initSolver.CoCoA_WPT = 'org.anon.cocoa.solvers.CoCoAWPTSolver';
+% initSolver.CoCoA_UF = 'org.anon.cocoa.solvers.CoCoASolver';
+initSolver.CoCoA_WPT = 'org.anon.cocoa.solvers.CoCoAWPTSolver';
 
 clear iterSolver;
 % iterSolver.NULL = '';
-iterSolver.DSA = 'org.anon.cocoa.solvers.DSASolver';
-iterSolver.MGM2 = 'org.anon.cocoa.solvers.MGM2Solver';
+% iterSolver.DSA = 'org.anon.cocoa.solvers.DSASolver';
+% iterSolver.MGM2 = 'org.anon.cocoa.solvers.MGM2Solver';
 iterSolver.ACLS = 'org.anon.cocoa.solvers.ACLSSolver';
-iterSolver.ACLSUB = 'org.anon.cocoa.solvers.ACLSUBSolver';
-iterSolver.MCSMGM = 'org.anon.cocoa.solvers.MCSMGMSolver';
+% iterSolver.ACLSUB = 'org.anon.cocoa.solvers.ACLSUBSolver';
+% iterSolver.MCSMGM = 'org.anon.cocoa.solvers.MCSMGMSolver';
 
 solvers = struct([]);
 for init = fieldnames(initSolver)'
@@ -133,25 +133,25 @@ for iter = fieldnames(iterSolver)'
         solverfield = matlab.lang.makeValidName(solvername);
         
         plot(mean(resultsMat.(solverfield).costs, 2), 'LineWidth', 3);
-        %         density = mean(results.(solverfield).density);
-        %         uniquevalexplored = mean([results.(solverfield).uniquevalexplored{:}]);
-        %         numvalexplored = mean([results.(solverfield).allvalexplored{:}]);
-        % %         allcombos = (density/2) * settings.nagents * settings.nagents * (settings.ncolors + incoroporateUnsetComparison) * (settings.ncolors + incoroporateUnsetComparison);
-        % %         supercombos = (settings.ncolors + incoroporateUnsetComparison) ^ settings.nagents;
-        %         fprintf('%s average values explored: %1.2f in %1.2f tries\n', ... %, (of %1.2f, so coverage %1.2f %%, precision %1.2f %%)\n', ...
-        %             solvername, uniquevalexplored, numvalexplored); %, supercombos, 100 * uniquevalexplored / supercombos, 100 * uniquevalexplored / numvalexplored);
+                density = mean(results.(solverfield).density);
+                uniquevalexplored = mean([results.(solverfield).uniquevalexplored{:}]);
+                numvalexplored = mean([results.(solverfield).allvalexplored{:}]);
+                allcombos = (density/2) * settings.nagents * settings.nagents * (settings.ncolors + incoroporateUnsetComparison) * (settings.ncolors + incoroporateUnsetComparison);
+                supercombos = (settings.ncolors + incoroporateUnsetComparison) ^ settings.nagents;
+                fprintf('%s average values explored: %1.2f in %1.2f tries\n', ... %, (of %1.2f, so coverage %1.2f %%, precision %1.2f %%)\n', ...
+                    solvername, uniquevalexplored, numvalexplored); %, supercombos, 100 * uniquevalexplored / supercombos, 100 * uniquevalexplored / numvalexplored);
     end
     fprintf('\n');
     h = legend(fieldnames(initSolver));
     set(h,'interpreter', 'none');
     
-%     for init = fieldnames(initSolver)'
-%         solvername = sprintf('%s - %s', init{:}, iter{:});
-%         solverfield = matlab.lang.makeValidName(solvername);
-%         plot(min(resultsMat.(solverfield).costs, [], 2), 'LineWidth', 1);
-%         %         plot(mean(resultsMat.(solverfield).costs, 2), 'LineWidth', 3);
-%         plot(max(resultsMat.(solverfield).costs, [], 2), 'LineWidth', 1);
-%     end
+    for init = fieldnames(initSolver)'
+        solvername = sprintf('%s - %s', init{:}, iter{:});
+        solverfield = matlab.lang.makeValidName(solvername);
+        plot(min(resultsMat.(solverfield).costs, [], 2), 'LineWidth', 1);
+        %         plot(mean(resultsMat.(solverfield).costs, 2), 'LineWidth', 3);
+        plot(max(resultsMat.(solverfield).costs, [], 2), 'LineWidth', 1);
+    end
 end
 
 % fprintf(
